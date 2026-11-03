@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>7 Days to Spend $1 Trillion: Wealth & Scale Simulator</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              900: '#0c4a6e',
+            },
+            accent: {
+              emerald: '#10b981',
+              amber: '#f59e0b',
+              rose: '#f43f5e',
+              indigo: '#6366f1'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom CSS animations and smooth transitions */
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.8; }
+    }
+    .glow-effect {
+      animation: pulse-glow 3s infinite ease-in-out;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 24px;
+      width: 24px;
+      border-radius: 50%;
+      background: #0ea5e9;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(14, 165, 233, 0.5);
+      transition: all 0.15s ease-in-out;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      background: #38bdf8;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.8);
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    .custom-scrollbar::-webkit-scrollbar-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen p-3 sm:p-6 lg:p-8 selection:bg-sky-500 selection:text-white">
+
+  <!-- Main Container -->
+  <div class="max-w-6xl mx-auto space-y-6">
+
+    <!-- Header & 7-Day Burn Rate Banner -->
+    <header class="glass-card rounded-2xl p-6 relative overflow-hidden shadow-2xl">
+      <div class="absolute -top-24 -right-24 w-72 h-72 bg-sky-500/10 rounded-full blur-3xl pointer-events-none glow-effect"></div>
+      <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none glow-effect"></div>
+
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-semibold tracking-wide uppercase mb-2">
+            <i class="fa-solid font-bold fa-stopwatch text-sky-400"></i> Interactive Scale Simulator
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            7 Days to Spend <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-emerald-400 to-indigo-400">$1 Trillion Dollars</span>
+          </h1>
+          <p class="text-slate-400 text-sm mt-1 max-w-2xl">
+            To burn through $1,000,000,000,000 in exactly 7 days, you must spend at an unthinkable pace of 
+            <span class="text-amber-400 font-semibold">$142.85 Billion per day</span> ($1.65 Million every second).
+          </p>
+        </div>
+
+        <!-- Live 7-Day Clock Metric -->
+        <div class="bg-slate-900/90 rounded-xl p-4 border border-slate-800 flex items-center gap-4 shrink-0 shadow-inner">
+          <div class="w-12 h-12 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-xl font-bold">
+            <i class="fa-solid fa-fire-flame-curved"></i>
+          </div>
+          <div>
+            <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Target Burn Rate</div>
+            <div class="text-lg sm:text-xl font-mono font-bold text-amber-400">$1,653,439 <span class="text-xs font-normal text-slate-400">/sec</span></div>
+            <div class="text-xs text-slate-500">$142.85B / day over 7 days</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Live Counter Dashboard -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Left Column: Primary Balances & Progress -->
+      <div class="lg:col-span-2 space-y-6">
+
+        <!-- Dynamic Counter Card -->
+        <div class="glass-card rounded-2xl p-6 shadow-xl relative overflow-hidden">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+            <!-- Remaining Balance -->
+            <div class="bg-slate-900/80 rounded-xl p-5 border border-slate-800">
+              <div class="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Remaining Capital</div>
+              <div id="remaining-balance" class="text-2xl sm:text-3xl font-mono font-extrabold text-emerald-400 tracking-tight">
+                $1,000,000,000,000
+              </div>
+              <div class="text-xs text-slate-500 mt-2 flex justify-between">
+                <span>Start: $1.00 Trillion</span>
+                <span id="remaining-percent">100.0% unspent</span>
+              </div>
+            </div>
+
+            <!-- Total Spent -->
+            <div class="bg-slate-900/80 rounded-xl p-5 border border-slate-800">
+              <div class="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Total Spent So Far</div>
+              <div id="total-spent" class="text-2xl sm:text-3xl font-mono font-extrabold text-sky-400 tracking-tight">
+                $0
+              </div>
+              <div class="text-xs text-slate-500 mt-2 flex justify-between">
+                <span id="spent-percent">0.0% spent</span>
+                <span id="days-equivalent">0.00 / 7 Days spent</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Spent Progress Bar -->
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs text-slate-400 font-medium">
+              <span>$0 Spent</span>
+              <span>$500 Billion</span>
+              <span>$1 Trillion Target</span>
+            </div>
+            <div class="w-full h-4 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-slate-800">
+              <div id="progress-bar-spent" class="h-full bg-gradient-to-r from-sky-500 via-indigo-500 to-emerald-400 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <!-- Action Toolbar -->
+          <div class="mt-6 pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+              <button onclick="quickFillAll()" class="text-xs px-3 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/30 transition-all">
+                <i class="fa-solid fa-bolt mr-1"></i> Max Allocate All
+              </button>
+              <button onclick="resetSimulator()" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all">
+                <i class="fa-solid fa-rotate-left mr-1"></i> Reset All
+              </button>
+            </div>
+            <div class="text-xs text-slate-400">
+              Item Count: <span id="total-items-purchased" class="font-bold text-white">0</span> items selected
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Benchmark Spending Items -->
+        <div class="glass-card rounded-2xl p-6 shadow-xl space-y-6">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-cart-shopping text-sky-400"></i> Spend Allocation Items
+              </h2>
+              <p class="text-xs text-slate-400">Adjust the quantities or sliders below to spend portions of your $1 Trillion budget.</p>
+            </div>
+            <span class="text-xs font-mono bg-slate-800 px-2.5 py-1 rounded text-slate-300">6 Mega Benchmarks</span>
+          </div>
+
+          <!-- Item List Container -->
+          <div id="items-container" class="space-y-6">
+            <!-- Dynamic items rendered via JS -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Context Analytics & 7-Day Pace Card -->
+      <div class="space-y-6">
+
+        <!-- 7-Day Burn Rate Tracker -->
+        <div class="glass-card rounded-2xl p-6 shadow-xl space-y-4">
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-calendar-days text-amber-400"></i> 7-Day Time Equivalency
+          </h2>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            At a target burn rate of <strong class="text-slate-200">$142.85 Billion/day</strong>, here is how many days of your 7-day challenge you have burned:
+          </p>
+
+          <!-- Day Grid Visualizer -->
+          <div class="grid grid-cols-7 gap-1.5 py-2" id="day-boxes">
+            <!-- 7 boxes populated via JS -->
+          </div>
+
+          <div class="bg-slate-900/90 rounded-xl p-4 border border-slate-800 text-xs space-y-2">
+            <div class="flex justify-between text-slate-400">
+              <span>Required Pace:</span>
+              <span class="text-slate-200 font-mono font-semibold">$5.95 Billion / hour</span>
+            </div>
+            <div class="flex justify-between text-slate-400">
+              <span>Per Minute Pace:</span>
+              <span class="text-slate-200 font-mono font-semibold">$99.2 Million / min</span>
+            </div>
+            <div class="flex justify-between text-slate-400 border-t border-slate-800 pt-2">
+              <span>Status:</span>
+              <span id="burn-status" class="text-amber-400 font-semibold">0% of 7-Day Goal Spent</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Perspective Comparison Stats -->
+        <div class="glass-card rounded-2xl p-6 shadow-xl space-y-4">
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-scale-balanced text-indigo-400"></i> Scale Comparison
+          </h2>
+          <div class="space-y-3 text-xs">
+            <div class="p-3 bg-slate-900/70 rounded-xl border border-slate-800">
+              <div class="text-slate-400">Height in $100 Bills:</div>
+              <div class="text-sm font-bold text-white mt-0.5">$1 Trillion stacked = 678 miles high</div>
+              <div class="text-slate-500 text-[11px] mt-1">Reaches far past low Earth orbit (ISS flies at ~250 miles).</div>
+            </div>
+
+            <div class="p-3 bg-slate-900/70 rounded-xl border border-slate-800">
+              <div class="text-slate-400">Time to Count manually:</div>
+              <div class="text-sm font-bold text-white mt-0.5">31,709 Years</div>
+              <div class="text-slate-500 text-[11px] mt-1">Counting $1 dollar per second without sleeping or stopping.</div>
+            </div>
+
+            <div class="p-3 bg-slate-900/70 rounded-xl border border-slate-800">
+              <div class="text-slate-400">Global GDP Benchmark:</div>
+              <div class="text-sm font-bold text-white mt-0.5">Top 20 World Economy</div>
+              <div class="text-slate-500 text-[11px] mt-1">$1 Trillion exceeds the entire GDP of countries like Saudi Arabia, Switzerland, or Turkey.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Summary Box -->
+        <div class="glass-card rounded-2xl p-6 shadow-xl border border-sky-500/20 bg-gradient-to-b from-slate-900/90 to-sky-950/20">
+          <h3 class="text-xs font-bold text-sky-400 uppercase tracking-wider mb-2">Key Takeaway</h3>
+          <p id="summary-insight" class="text-xs text-slate-300 leading-relaxed">
+            Adjust the sliders above to spend your $1 Trillion. Notice how hard it is to spend $1 Trillion even when buying whole sports leagues or millions of vehicles!
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    // Total Starting Budget
+    const TRILLION = 1000000000000;
+    const DAILY_BURN_TARGET = TRILLION / 7; // ~ $142,857,142,857.14 per day
+
+    // Spending Benchmark Items
+    const benchmarkItems = [
+      {
+        id: 'nfl',
+        title: 'Buy Professional Sports Leagues (NFL)',
+        unitCost: 163000000000, // $163 Billion for all 32 franchises combined
+        unitName: 'Entire NFL Leagues',
+        icon: 'fa-football',
+        color: 'text-amber-400',
+        maxQty: 6,
+        description: 'Estimated total value of all 32 NFL franchises combined (~$163 Billion).'
+      },
+      {
+        id: 'tesla',
+        title: 'Fleet of New EV Cars ($40k each)',
+        unitCost: 40000,
+        unitName: 'Tesla Model 3 EVs',
+        icon: 'fa-car-side',
+        color: 'text-sky-400',
+        maxQty: 25000000, // Up to 25 million vehicles
+        step: 500000,
+        description: 'Brand-new electric vehicles at $40,000 per car.'
+      },
+      {
+        id: 'global_cash',
+        title: 'Direct Cash Transfer to Every Human',
+        unitCost: 1000000000, // $1 Billion per $0.125 to 8 billion people
+        unitName: 'Global Cash Tranches ($1B)',
+        icon: 'fa-earth-americas',
+        color: 'text-emerald-400',
+        maxQty: 1000,
+        step: 10,
+        description: 'Giving cash directly to all ~8 Billion living humans ($125/person per $1 Trillion total).'
+      },
+      {
+        id: 'clean_energy',
+        title: 'Global Solar & Clean Energy Grid',
+        unitCost: 300000000000, // $300 Billion/year
+        unitName: 'Years of Global Transition',
+        icon: 'fa-solar-panel',
+        color: 'text-yellow-400',
+        maxQty: 3.33,
+        step: 0.1,
+        isFloat: true,
+        description: 'Annual capital expenditure needed worldwide to rapidly scale utility solar infrastructure.'
+      },
+      {
+        id: 'tech_acq',
+        title: 'Acquire Major Tech Corporations',
+        unitCost: 100000000000, // $100 Billion per mega acquisition
+        unitName: '$100B Tech Giants',
+        icon: 'fa-microchip',
+        color: 'text-indigo-400',
+        maxQty: 10,
+        step: 1,
+        description: 'Buy full ownership of major global tech or AI enterprise companies.'
+      },
+      {
+        id: 'luxury_housing',
+        title: 'Construct Modern Affordable Housing Units',
+        unitCost: 250000, // $250k per modern unit
+        unitName: 'New Housing Units',
+        icon: 'fa-city',
+        color: 'text-rose-400',
+        maxQty: 4000000,
+        step: 100000,
+        description: 'Build brand-new residential family housing units at $250,000 construction cost each.'
+      }
+    ];
+
+    // State object
+    let itemQuantities = {
+      nfl: 0,
+      tesla: 0,
+      global_cash: 0,
+      clean_energy: 0,
+      tech_acq: 0,
+      luxury_housing: 0
+    };
+
+    // Render Items
+    function renderItems() {
+      const container = document.getElementById('items-container');
+      container.innerHTML = benchmarkItems.map(item => {
+        const qty = itemQuantities[item.id] || 0;
+        const totalItemCost = qty * item.unitCost;
+        const formattedCost = formatCurrency(totalItemCost);
+
+        return `
+          <div class="bg-slate-900/60 rounded-xl p-4 border border-slate-800 hover:border-slate-700 transition-all space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center ${item.color} text-lg">
+                  <i class="fa-solid ${item.icon}"></i>
+                </div>
+                <div>
+                  <h3 class="text-sm font-bold text-white">${item.title}</h3>
+                  <div class="text-xs text-slate-400">$${formatShortNumber(item.unitCost)} / unit &bull; ${item.description}</div>
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                <div class="text-sm font-mono font-bold text-sky-400">${formattedCost}</div>
+                <div class="text-xs text-slate-400 font-mono">${item.isFloat ? qty.toFixed(1) : qty.toLocaleString()} ${item.unitName}</div>
+              </div>
+            </div>
+
+            <!-- Slider and Quick Buttons Controls -->
+            <div class="flex items-center gap-3 pt-1">
+              <input 
+                type="range" 
+                min="0" 
+                max="${item.maxQty}" 
+                step="${item.step || 1}" 
+                value="${qty}" 
+                oninput="updateItemQty('${item.id}', this.value)"
+                class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-sky-500"
+              >
+              <div class="flex gap-1 shrink-0">
+                <button onclick="stepQty('${item.id}', -1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-xs font-bold transition-all border border-slate-700">
+                  <i class="fa-solid fa-minus"></i>
+                </button>
+                <button onclick="stepQty('${item.id}', 1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-xs font-bold transition-all border border-slate-700">
+                  <i class="fa-solid fa-plus"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render 7-Day Box Grid
+    function renderDayBoxes(daysSpent) {
+      const container = document.getElementById('day-boxes');
+      let html = '';
+      for (let i = 1; i <= 7; i++) {
+        const isFilled = daysSpent >= i;
+        const isPartial = daysSpent > (i - 1) && daysSpent < i;
+        
+        let bgColor = 'bg-slate-900 border-slate-800 text-slate-600';
+        if (isFilled) {
+          bgColor = 'bg-gradient-to-t from-amber-600 to-amber-500 border-amber-400 text-slate-950 font-bold';
+        } else if (isPartial) {
+          bgColor = 'bg-amber-500/30 border-amber-500/50 text-amber-300';
+        }
+
+        html += `
+          <div class="h-12 rounded-lg border flex flex-col items-center justify-center text-[10px] uppercase font-semibold ${bgColor} transition-all">
+            <span>Day</span>
+            <span class="text-xs font-mono font-bold">${i}</span>
+          </div>
+        `;
+      }
+      container.innerHTML = html;
+    }
+
+    // Helper functions
+    function formatCurrency(num) {
+      if (num >= 1e12) return '$' + (num / 1e12).toFixed(3) + ' Trillion';
+      if (num >= 1e9) return '$' + (num / 1e9).toFixed(2) + ' Billion';
+      if (num >= 1e6) return '$' + (num / 1e6).toFixed(2) + ' Million';
+      return '$' + Math.round(num).toLocaleString();
+    }
+
+    function formatShortNumber(num) {
+      if (num >= 1e12) return (num / 1e12).toFixed(1) + 'T';
+      if (num >= 1e9) return (num / 1e9).toFixed(1) + 'B';
+      if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
+      if (num >= 1e3) return (num / 1e3).toFixed(0) + 'k';
+      return num.toLocaleString();
+    }
+
+    // Update state & UI recalculations
+    function updateItemQty(id, val) {
+      itemQuantities[id] = parseFloat(val) || 0;
+      recalculate();
+    }
+
+    function stepQty(id, direction) {
+      const item = benchmarkItems.find(i => i.id === id);
+      const step = item.step || 1;
+      let current = itemQuantities[id] || 0;
+      current += direction * step;
+      if (current < 0) current = 0;
+      if (current > item.maxQty) current = item.maxQty;
+      itemQuantities[id] = current;
+      recalculate();
+    }
+
+    function recalculate() {
+      let totalSpent = 0;
+      let totalItemsCount = 0;
+
+      benchmarkItems.forEach(item => {
+        const qty = itemQuantities[item.id] || 0;
+        totalSpent += qty * item.unitCost;
+        if (qty > 0) totalItemsCount += 1;
+      });
+
+      // Cap or validate
+      const remaining = Math.max(0, TRILLION - totalSpent);
+      const spentPercent = Math.min(100, (totalSpent / TRILLION) * 100);
+      const remainingPercent = (100 - spentPercent);
+      const daysEquivalent = (totalSpent / DAILY_BURN_TARGET);
+
+      // DOM Updates
+      document.getElementById('remaining-balance').innerText = formatCurrency(remaining);
+      document.getElementById('remaining-percent').innerText = `${remainingPercent.toFixed(1)}% unspent`;
+      
+      document.getElementById('total-spent').innerText = formatCurrency(totalSpent);
+      document.getElementById('spent-percent').innerText = `${spentPercent.toFixed(1)}% spent`;
+      document.getElementById('days-equivalent').innerText = `${daysEquivalent.toFixed(2)} / 7 Days spent`;
+
+      document.getElementById('progress-bar-spent').style.width = `${spentPercent}%`;
+      document.getElementById('total-items-purchased').innerText = totalItemsCount;
+
+      // Status text update
+      document.getElementById('burn-status').innerText = `${spentPercent.toFixed(1)}% of 7-Day Goal Spent`;
+
+      // Update Summary Insight dynamically
+      const insight = document.getElementById('summary-insight');
+      if (spentPercent === 0) {
+        insight.innerHTML = "Select items above to spend your budget. You need to average <strong>$142.85 Billion per day</strong> to spend all $1 Trillion in 7 days.";
+      } else if (spentPercent < 50) {
+        insight.innerHTML = `You have spent <strong>${formatCurrency(totalSpent)}</strong> so far (${spentPercent.toFixed(1)}%). You still have over half your trillion left!`;
+      } else if (spentPercent < 100) {
+        insight.innerHTML = `You've spent <strong>${spentPercent.toFixed(1)}%</strong> of $1 Trillion! That corresponds to <strong>${daysEquivalent.toFixed(1)} days</strong> of maximum required burn rate.`;
+      } else {
+        insight.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> Goal Accomplished!</span> You spent all $1 Trillion within your 7-day target budget limit!`;
+      }
+
+      renderDayBoxes(daysEquivalent);
+      renderItems();
+    }
+
+    function quickFillAll() {
+      // Auto fill items to equal $1 Trillion
+      itemQuantities = {
+        nfl: 2, // ~$326B
+        clean_energy: 1.5, // $450B
+        tesla: 4000000, // $160B
+        tech_acq: 0.64, // $64B
+        luxury_housing: 0,
+        global_cash: 0
+      };
+      recalculate();
+    }
+
+    function resetSimulator() {
+      itemQuantities = {
+        nfl: 0,
+        tesla: 0,
+        global_cash: 0,
+        clean_energy: 0,
+        tech_acq: 0,
+        luxury_housing: 0
+      };
+      recalculate();
+    }
+
+    // Initialize on load
+    window.onload = function() {
+      recalculate();
+    };
+  </script>
+</body>
+</html>
