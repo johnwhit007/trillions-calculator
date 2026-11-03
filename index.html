@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>7-Day $1 Trillion Challenge: Hard Mode</title>
+  <title>7-Day $1 Trillion Challenge: Hard Mode Learning Module</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 p-4 md:p-8 font-sans min-h-screen">
@@ -136,4 +136,137 @@
 
     const items = [
       { id: 'nfl', name: 'Buy Every NFL Franchise (32 Teams)', cost: 163000000000, qty: 0, max: 1, delay: 2, status: 'available', req: 'SEC & League Approval (2-Day Hold)' },
-      { id: 'solar', name: '
+      { id: 'solar', name: 'Global Utility Solar Grid Expansion', cost: 300000000000, qty: 0, max: 3, delay: 0, status: 'available', req: 'Instant Wire Clearance' },
+      { id: 'teslas', name: '10 Million Fleet EVs ($40k each)', cost: 400000000000, qty: 0, max: 2, delay: 0, status: 'available', req: 'Instant Wire Clearance' },
+      { id: 'island', name: 'Private Islands Portfolio (100 Islands)', cost: 50000000000, qty: 0, max: 2, delay: 1, status: 'available', req: 'Escrow & Title Clearance (1-Day Hold)' },
+      { id: 'ubi', name: 'Global Direct Cash Payout ($100/person)', cost: 800000000000, qty: 0, max: 1, delay: 0, status: 'available', req: 'Instant Banking Protocol' }
+    ];
+
+    function logMessage(msg) {
+      document.getElementById('game-log').innerHTML = `💡 ${msg}`;
+    }
+
+    function renderItems() {
+      const container = document.getElementById('item-list');
+      container.innerHTML = '';
+
+      items.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'p-4 bg-slate-900 rounded-lg border border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4';
+        
+        let statusBadge = item.status === 'cleared' 
+          ? `<span class="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/30">Cleared</span>`
+          : item.status === 'pending'
+          ? `<span class="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded border border-amber-500/30">Pending Approval</span>`
+          : `<span class="text-xs text-slate-400">${item.req}</span>`;
+
+        card.innerHTML = `
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-slate-200">${item.name}</span>
+              ${statusBadge}
+            </div>
+            <div class="text-xs text-slate-400 mt-1">Cost: $${item.cost.toLocaleString()}</div>
+          </div>
+          <div class="flex items-center gap-3">
+            <button onclick="buyItem(${index})" ${liquidCash < item.cost || item.qty >= item.max ? 'disabled class="opacity-40 bg-slate-800 text-slate-500 px-4 py-2 rounded text-xs font-bold cursor-not-allowed"' : 'class="bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 rounded text-xs font-bold transition"'}>
+              ${item.qty >= item.max ? 'Max Allocated' : 'Purchase / Allocate'}
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      updateHUD();
+    }
+
+    function buyItem(index) {
+      const item = items[index];
+      if (liquidCash >= item.cost && item.qty < item.max) {
+        liquidCash -= item.cost;
+        item.qty += 1;
+
+        if (item.delay > 0) {
+          item.status = 'pending';
+          totalPending += item.cost;
+          logMessage(`<strong>${item.name}</strong> submitted! Held in escrow for <strong>${item.delay} day(s)</strong> pending legal clearance.`);
+        } else {
+          item.status = 'cleared';
+          totalClearedSpent += item.cost;
+          logMessage(`<strong>${item.name}</strong> wire cleared instantly for $${item.cost.toLocaleString()}.`);
+        }
+        renderItems();
+      }
+    }
+
+    function advanceDay() {
+      if (currentDay >= 7) {
+        endGame();
+        return;
+      }
+
+      currentDay += 1;
+
+      // Overnight Interest Accrual on remaining liquid cash (5% APR)
+      const dailyInterest = Math.floor(liquidCash * (0.05 / 365));
+      liquidCash += dailyInterest;
+      totalInterest += dailyInterest;
+
+      // Process Pending Escrows
+      let clearedToday = [];
+      items.forEach(item => {
+        if (item.status === 'pending') {
+          item.delay -= 1;
+          if (item.delay <= 0) {
+            item.status = 'cleared';
+            totalPending -= item.cost;
+            totalClearedSpent += item.cost;
+            clearedToday.push(item.name);
+          }
+        }
+      });
+
+      let statusText = `<strong>Day ${currentDay} Started:</strong> Accrued <strong>+$${dailyInterest.toLocaleString()}</strong> in overnight unspent interest!`;
+      if (clearedToday.length > 0) {
+        statusText += ` Escrow cleared for: ${clearedToday.join(', ')}.`;
+      }
+      logMessage(statusText);
+
+      renderItems();
+    }
+
+    function endGame() {
+      document.getElementById('btn-next-day').disabled = true;
+      document.getElementById('btn-next-day').className = 'opacity-50 bg-slate-700 text-slate-400 px-5 py-2.5 text-xs font-bold rounded-lg cursor-not-allowed';
+      
+      const unspent = liquidCash + totalPending;
+      if (unspent === 0) {
+        logMessage(`🏆 <strong>VICTORY!</strong> You managed to completely liquidate $1 Trillion in 7 Days despite legal bottlenecks!`);
+      } else {
+        logMessage(`❌ <strong>CHALLENGE FAILED:</strong> Time expired! You still have <strong>$${unspent.toLocaleString()}</strong> unspent due to interest compounding and approval holds.`);
+      }
+    }
+
+    function resetGame() {
+      currentDay = 1;
+      liquidCash = INITIAL_BUDGET;
+      totalClearedSpent = 0;
+      totalPending = 0;
+      totalInterest = 0;
+      items.forEach(i => {
+        i.qty = 0;
+        i.status = 'available';
+        if(i.id === 'nfl') i.delay = 2;
+        if(i.id === 'island') i.delay = 1;
+      });
+      document.getElementById('btn-next-day').disabled = false;
+      document.getElementById('btn-next-day').className = 'px-5 py-2.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg shadow-lg shadow-emerald-900/40 transition';
+      logMessage(`Game reset to Day 1.`);
+      renderItems();
+    }
+
+    function updateHUD() {
+      document.getElementById('hud-day').innerText = currentDay;
+      document.getElementById('stat-cash').innerText = '$' + Math.floor(liquidCash).toLocaleString();
+      document.getElementById('stat-spent').innerText = '$' + totalClearedSpent.toLocaleString();
+      document.getElementById('stat-pending').
