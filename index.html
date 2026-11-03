@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>7 Days to Spend $1 Trillion</title>
+  <title>7 Days to Spend $1 Trillion + Interest</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 p-4 md:p-8 font-sans min-h-screen">
@@ -28,43 +28,53 @@
       </audio>
     </div>
 
-    <!-- 2. FULL MULTI-ITEM BURN RATE CALCULATOR -->
+    <!-- 2. FULL SIMULATOR WITH LIVE INTEREST ENGINE -->
     <div class="p-6 bg-slate-800 rounded-xl border border-slate-700 shadow-xl space-y-6">
-      <!-- Header & Dashboard -->
+      <!-- Header -->
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-700 pb-4 gap-4">
         <div>
-          <h2 class="text-2xl font-extrabold text-sky-400">7-Day $1 Trillion Spending Simulator</h2>
-          <p class="text-slate-400 text-sm">Target pace: <span class="text-amber-400 font-semibold">$142.85 Billion / day</span> ($1.65 Million / sec)</p>
+          <h2 class="text-2xl font-extrabold text-sky-400">7-Day $1 Trillion Burn Simulator</h2>
+          <p class="text-slate-400 text-sm">Target pace: <span class="text-amber-400 font-semibold">$142.85 Billion / day</span></p>
         </div>
         <button onclick="resetBudget()" class="px-4 py-2 text-xs bg-slate-700 hover:bg-slate-600 rounded-lg text-slate-300 font-semibold transition">
           Reset Budget
         </button>
       </div>
 
-      <!-- Live Financial Counter Grid -->
+      <!-- INTEREST ALERT BANNER -->
+      <div class="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-center gap-3">
+        <span class="text-2xl">📈</span>
+        <div class="text-xs text-amber-200 leading-relaxed">
+          <strong>The Compounding Paradox:</strong> At 5% annual yield, your unspent principal generates 
+          <span class="text-amber-400 font-bold">$136,986,301 per day</span> ($1,585 every second). 
+          The longer you wait to allocate, the more interest builds up!
+        </div>
+      </div>
+
+      <!-- Live Dashboard Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-slate-900 p-4 rounded-lg border border-slate-700">
-          <div class="text-xs text-slate-400 uppercase font-bold">Total Budget</div>
-          <div class="text-lg font-bold text-slate-200">$1,000,000,000,000</div>
+          <div class="text-xs text-slate-400 uppercase font-bold">Unspent Principal</div>
+          <div id="stat-remaining" class="text-lg font-bold text-emerald-400">$1,000,000,000,000</div>
         </div>
         <div class="bg-slate-900 p-4 rounded-lg border border-slate-700">
           <div class="text-xs text-slate-400 uppercase font-bold">Total Spent</div>
           <div id="stat-spent" class="text-lg font-bold text-sky-400">$0</div>
         </div>
         <div class="bg-slate-900 p-4 rounded-lg border border-slate-700">
-          <div class="text-xs text-slate-400 uppercase font-bold">Remaining</div>
-          <div id="stat-remaining" class="text-lg font-bold text-emerald-400">$1,000,000,000,000</div>
+          <div class="text-xs text-amber-400 uppercase font-bold">Interest Earned</div>
+          <div id="stat-interest" class="text-lg font-bold text-amber-400">$0</div>
         </div>
         <div class="bg-slate-900 p-4 rounded-lg border border-slate-700">
-          <div class="text-xs text-slate-400 uppercase font-bold">Days Funded</div>
-          <div id="stat-days" class="text-lg font-bold text-amber-400">0.0 / 7 Days</div>
+          <div class="text-xs text-slate-400 uppercase font-bold">Net Remaining</div>
+          <div id="stat-net" class="text-lg font-bold text-slate-200">$1,000,000,000,000</div>
         </div>
       </div>
 
-      <!-- Visual Progress Bar -->
+      <!-- Progress Bar -->
       <div class="space-y-1">
         <div class="flex justify-between text-xs text-slate-400">
-          <span>Budget Spent Progress</span>
+          <span>Principal Burned</span>
           <span id="progress-percent">0%</span>
         </div>
         <div class="w-full bg-slate-900 h-3 rounded-full overflow-hidden border border-slate-700">
@@ -83,6 +93,8 @@
 
   <script>
     const TOTAL_BUDGET = 1000000000000;
+    const ANNUAL_INTEREST_RATE = 0.05; // 5% Yield
+    let accumulatedInterest = 0;
     
     const items = [
       { id: 'nfl', name: 'Buy Every Franchise in the NFL (32 Teams)', cost: 163000000000, qty: 0, max: 1 },
@@ -134,23 +146,37 @@
 
     function resetBudget() {
       items.forEach(i => i.qty = 0);
+      accumulatedInterest = 0;
       renderItems();
     }
 
     function updateTotals() {
       const totalSpent = items.reduce((sum, item) => sum + (item.cost * item.qty), 0);
-      const remaining = TOTAL_BUDGET - totalSpent;
+      const remainingPrincipal = Math.max(0, TOTAL_BUDGET - totalSpent);
+      const netBalance = remainingPrincipal + accumulatedInterest;
       const pct = Math.min(100, ((totalSpent / TOTAL_BUDGET) * 100)).toFixed(1);
-      const days = ((totalSpent / TOTAL_BUDGET) * 7).toFixed(1);
 
       document.getElementById('stat-spent').innerText = '$' + totalSpent.toLocaleString();
-      document.getElementById('stat-remaining').innerText = '$' + remaining.toLocaleString();
-      document.getElementById('stat-days').innerText = `${days} / 7 Days`;
+      document.getElementById('stat-remaining').innerText = '$' + remainingPrincipal.toLocaleString();
+      document.getElementById('stat-interest').innerText = '+$' + Math.floor(accumulatedInterest).toLocaleString();
+      document.getElementById('stat-net').innerText = '$' + Math.floor(netBalance).toLocaleString();
       document.getElementById('progress-percent').innerText = pct + '%';
       document.getElementById('progress-bar').style.width = pct + '%';
     }
 
-    // Initialize layout
+    // Live Ticker Engine: Accrues interest every second based on remaining unspent principal
+    setInterval(() => {
+      const totalSpent = items.reduce((sum, item) => sum + (item.cost * item.qty), 0);
+      const remainingPrincipal = Math.max(0, TOTAL_BUDGET - totalSpent);
+      
+      // Calculate 1 second worth of 5% annual interest on remaining balance
+      const interestPerSecond = (remainingPrincipal * ANNUAL_INTEREST_RATE) / (365 * 24 * 3600);
+      accumulatedInterest += interestPerSecond;
+      
+      updateTotals();
+    }, 1000);
+
+    // Initial Render
     renderItems();
   </script>
 </body>
